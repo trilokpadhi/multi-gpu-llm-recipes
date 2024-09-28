@@ -8,7 +8,6 @@ This repository contains recipes for running inference and training on Large Lan
 - [How Multi-GPU Parallelism Works in PyTorch](#how-multi-gpu-parallelism-works-in-pytorch)
 - [Backend Initialization and Process Communication](#backend-initialization-and-process-communication)
 - [Key PyTorch Functions for Distributed Processing](#key-pytorch-functions-for-distributed-processing)
-- [Basic Multi-GPU Script with PyTorch](#basic-multi-gpu-script-with-pytorch)
 - [Setting up Multi-GPU Distributed Training or Inference](#setting-up-multi-gpu-distributed-training-or-inference)
 - [How to Run](#how-to-run)
 - [References](#references)
@@ -80,3 +79,28 @@ def run_parallel_task(rank, world_size):
 if __name__ == "__main__":
     world_size = torch.cuda.device_count()  # Number of available GPUs
     mp.spawn(run_parallel_task, args=(world_size,), nprocs=world_size, join=True)
+
+```
+
+### Key PyTorch Functions for Distributed Processing
+- `dist.init_process_group()`: Initializes the distributed environment.
+- `dist.destroy_process_group()`: Cleans up the distributed environment.
+- `dist.all_reduce()`: Sums the input tensor across all processes.
+- `dist.scatter()`: Scatters the input tensor to all processes.
+- `dist.gather()`: Gathers tensors from all processes.
+- `dist.broadcast()`: Broadcasts the input tensor to all processes.
+
+---
+### Setting up Multi-GPU Distributed Training or Inference
+It can be challenging to set up multi-GPU distributed training or inference, but PyTorch provides a robust API to simplify the process. Here are the key steps:
+1 . **Initialize the Process Group**: Use `dist.init_process_group()` to set up the distributed environment.
+2. **Assign GPUs to Processes**: Use `torch.cuda.set_device(rank)` to assign each process to a specific GPU.
+3. **Distribute Work**: Distribute the workload across GPUs, ensuring synchronization using `dist.all_reduce()`, `dist.scatter()`, `dist.gather()`, etc.
+4. **Cleanup**: Use `dist.destroy_process_group()` to clean up the distributed environment.
+
+---
+
+## How to Run
+```bash
+torchrun -n 2 python multi-gpu-data-parallel.py
+```
