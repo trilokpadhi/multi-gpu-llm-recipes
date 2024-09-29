@@ -113,14 +113,19 @@ def inference(rank, device, model_name, dataset_shard, batch_size, output_dir):
                 except KeyError:
                     print(f"Rank {rank}: 'selected_caption' not found in sample {idx}. Skipping.")
                     continue
-
-                input_text = f"This is an image with caption '{selected_caption}'. Explain why it feels wierd."
+                
+                # baseline
+                input_text = f"USER: <image> \n Write a caption for this image. "
+                # input_text = 'write a caption for this image'
+                # chain of thought
+                # input_text = f"USER: <image> \n This is an image with caption '{selected_caption}'. Explain why it feels wierd. Lets think step by step... "
+                
                 image = sample['image']
                 # inputs = tokenizer(input_text, return_tensors="pt").to(device)
                 inputs = processor(images=image, text=input_text, return_tensors="pt").to(device, torch.float16)
 
                 with torch.no_grad():
-                    outputs = model.generate(inputs['input_ids'], max_new_tokens=512)
+                    outputs = model.generate(**inputs, max_new_tokens=512)
 
                 generated_text = processor.decode(outputs[0], skip_special_tokens=True)
                 
