@@ -102,5 +102,5 @@ It can be challenging to set up multi-GPU distributed training or inference, but
 
 ## How to Run
 ```bash
-torchrun -n 2 python multi-gpu-data-parallel.py
+torchrun --nproc_per_node=8 multi-gpu-data-parallel.py
 ```
