@@ -5,6 +5,7 @@ from datasets import load_dataset
 import os
 import json
 from tqdm import tqdm
+import argparse
 
 def setup_distributed():
     """
@@ -142,7 +143,7 @@ def inference(rank, device, model_name, dataset_shard, batch_size, output_dir):
         print(f"Rank {rank}: Error during inference - {str(e)}")
         raise
 
-def main():
+def main(args):
     """
     Main function to perform distributed inference.
     """
@@ -173,11 +174,14 @@ def main():
         return
 
     # Define model and batch size
-    model_name = "meta-llama/Llama-2-7b-hf"
-    batch_size = 2
+    # model_name = "meta-llama/Llama-2-7b-hf"
+    model_name = args.model_name
+    # batch_size = 2
+    batch_size = args.batch_size
 
     # Create output directory
-    output_dir = 'results'
+    # output_dir = 'results'
+    output_dir = args.output_dir
     try:
         if rank == 0:
             os.makedirs(output_dir, exist_ok=True)
@@ -230,7 +234,8 @@ def main():
                 print(f"Rank {rank}: Result file {output_file} not found.")
 
         # Write the combined results to a single JSON file
-        final_output_file = 'results_combined.json'
+        # final_output_file = 'results_combined.json'
+        final_output_file = args.final_output_file
         try:
             with open(final_output_file, 'w') as f:
                 json.dump(combined_results, f, indent=4)
@@ -246,5 +251,14 @@ if __name__ == "__main__":
     os.environ['NCCL_DEBUG'] = 'INFO'
     os.environ['NCCL_DEBUG_SUBSYS'] = 'ALL'
     os.environ['PYTHONWARNINGS'] = 'ignore:semaphore_tracker'
+    
+    # Take arguments from command line
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output_dir", type=str, default="results", help="Output directory for results")
+    parser.add_argument("--batch_size", type=int, default=2, help="Batch size for inference")
+    parser.add_argument("--final_output_file", type=str, default="results_combined.json", help="Final output file for combined results")
+    # model_name = "meta-llama/Llama-2-7b-hf"
+    parser.add_argument("--model_name", type=str, default="meta-llama/Llama-2-7b-hf", help="Model name for inference")
+    args = parser.parse_args()
 
-    main()
+    main(args)
